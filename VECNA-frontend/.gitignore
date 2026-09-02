@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+*.tsbuildinfo
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

@@ -1,0 +1,24 @@
+# Environment & secrets
+.env
+*.env
+!.env.example
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Node & Frontend
+node_modules/
+dist/
+*.tsbuildinfo
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.git_backup/
+*.git_backup
