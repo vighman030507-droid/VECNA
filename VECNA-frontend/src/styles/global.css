@@ -572,9 +572,9 @@ select:focus-visible {
   }
 }
 
-/* ==========================================================================
-   JARVIS CHAT PANEL & INPUT SECTION
-   ========================================================================= */
+/* -------------------------------------------------------------------------- */
+/* VECNA CHAT PANEL & INPUT SECTION                                           */
+/* -------------------------------------------------------------------------- */
 
 .chat-panel {
   width: min(24rem, calc(100vw - 2rem));
@@ -598,7 +598,7 @@ select:focus-visible {
   font-family: "Inter", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 }
 
-.jarvis-brand {
+.vecna-brand {
   margin: 0;
   display: inline-flex;
   align-items: center;
@@ -614,7 +614,7 @@ select:focus-visible {
     0 0 38px rgba(180, 0, 30, 0.6);
 }
 
-.jarvis-brand::before {
+.vecna-brand::before {
   content: "";
   display: inline-block;
   width: 0.45rem;
@@ -701,7 +701,7 @@ h1 {
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.message.jarvis {
+.message.vecna {
   justify-self: start;
   border: 1px solid rgba(255, 45, 85, 0.42);
   border-radius: 3px 12px 12px 12px;
@@ -2005,7 +2005,7 @@ h1 {
   box-shadow: 0 0 35px rgba(230, 10, 30, 0.35), inset 0 0 20px rgba(200, 0, 20, 0.2);
 }
 
-.app-shell.curse-active .jarvis-brand {
+.app-shell.curse-active .vecna-brand {
   color: #ff1844;
   text-shadow: 0 0 14px rgba(255, 24, 68, 0.9);
 }

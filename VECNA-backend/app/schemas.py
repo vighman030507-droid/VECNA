@@ -115,14 +115,6 @@ class TelemetryResponse(BaseModel):
     uptime: str
 
 
-class ScreenAnalyzeRequest(BaseModel):
-    query: str = "Analyze what is currently open on my screen."
-
-
-class ScreenAnalyzeResponse(BaseModel):
-    analysis: str
-
-
 class MemoryAddRequest(BaseModel):
     text: str = Field(min_length=3, max_length=5000)
 

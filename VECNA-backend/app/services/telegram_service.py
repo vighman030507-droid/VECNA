@@ -102,7 +102,7 @@ def start_telegram_uplink() -> None:
             app.add_handler(CommandHandler("status", cmd_status))
             app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
             logger.info("Telegram Uplink active.")
-            app.run_polling()
+            app.run_polling(stop_signals=None, close_loop=False)
         except Exception as e:
             logger.warning("Telegram bot polling error: %s", e)
 

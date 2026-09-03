@@ -73,7 +73,7 @@ def test_local_action_api_rejects_public_browser_origin(monkeypatch) -> None:
     response = client.post(
         "/api/local-actions/plan",
         json={"text": "open Notepad"},
-        headers={"Origin": "https://jarvis.example"},
+        headers={"Origin": "https://vecna.example"},
     )
 
     assert response.status_code == 403

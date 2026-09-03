@@ -16,14 +16,14 @@ def parse_bool(value: str) -> bool:
 
 @dataclass(frozen=True)
 class Settings:
-    backend_host: str = os.getenv("JARVIS_BACKEND_HOST", "127.0.0.1")
-    backend_port: int = int(os.getenv("JARVIS_BACKEND_PORT", "8765"))
+    backend_host: str = os.getenv("VECNA_BACKEND_HOST", "127.0.0.1")
+    backend_port: int = int(os.getenv("VECNA_BACKEND_PORT", "8765"))
     groq_api_key: str = os.getenv("GROQ_API_KEY", "")
-    groq_chat_model: str = os.getenv("GROQ_CHAT_MODEL", "llama-3.3-70b-versatile")
+    groq_chat_model: str = os.getenv("GROQ_CHAT_MODEL", "openai/gpt-oss-120b")
     allowed_origins: tuple[str, ...] = parse_origins(
-        os.getenv("JARVIS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:1420,http://127.0.0.1:1420")
+        os.getenv("VECNA_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173,http://localhost:1420,http://127.0.0.1:1420")
     )
-    local_actions_enabled: bool = parse_bool(os.getenv("JARVIS_LOCAL_ACTIONS_ENABLED", "false"))
+    local_actions_enabled: bool = parse_bool(os.getenv("VECNA_LOCAL_ACTIONS_ENABLED", "false"))
 
     # Multi-Provider Neural Hot-Swap Keys
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")

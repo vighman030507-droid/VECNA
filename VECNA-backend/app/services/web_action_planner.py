@@ -39,7 +39,7 @@ Never return a URL, command, file path, app name, or explanation."""
 def _clean_query(text: str, remove_prefixes: list[str]) -> str:
     cleaned = text.strip()
     # Strip conversational preambles
-    cleaned = re.sub(r"^(?:hey|hi|hello|ok|okay)?(?:\s+(?:vecna|jarvis|bot))?(?:[,\s]+)?(?:can you|please|could you)?(?:[,\s]+)?", "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"^(?:hey|hi|hello|ok|okay)?(?:\s+(?:vecna|bot))?(?:[,\s]+)?(?:can you|please|could you)?(?:[,\s]+)?", "", cleaned, flags=re.IGNORECASE)
     for prefix in remove_prefixes:
         cleaned = re.sub(rf"^{prefix}\s*", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(

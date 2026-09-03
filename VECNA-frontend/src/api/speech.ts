@@ -62,7 +62,7 @@ export async function transcribeRecording(audio: Blob, language: "en" | "hi" = "
   }
   if (!response.ok) {
     const body: { detail?: string } = await response.json().catch(() => ({}));
-    throw new Error(body.detail ?? "Jarvis could not transcribe that recording.");
+    throw new Error(body.detail ?? "Vecna could not transcribe that recording.");
   }
   return (await response.json() as { transcript: string }).transcript;
 }

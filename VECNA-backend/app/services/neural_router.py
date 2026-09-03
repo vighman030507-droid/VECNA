@@ -35,7 +35,7 @@ def get_available_providers() -> list[dict[str, Any]]:
             "name": "Groq (Primary)",
             "url": GROQ_URL,
             "key": settings.groq_api_key,
-            "models": [settings.groq_chat_model, "llama-3.3-70b-versatile", "qwen/qwen3.8-27b"],
+            "models": [settings.groq_chat_model, "openai/gpt-oss-120b", "openai/gpt-oss-20b", "qwen/qwen3.8-27b"],
         })
 
     # 2. Backup 1: Google Gemini (OpenAI-compatible endpoint)
@@ -44,7 +44,7 @@ def get_available_providers() -> list[dict[str, Any]]:
             "name": "Google Gemini",
             "url": GEMINI_URL,
             "key": settings.gemini_api_key,
-            "models": ["gemini-2.5-flash", "gemini-1.5-flash"],
+            "models": ["gemini-3-flash-preview", "gemini-flash-latest", "gemini-2.5-flash"],
         })
 
     # 3. Backup 2: NVIDIA NIM

@@ -1,1 +1,1 @@
-"""HTTP routes for Jarvis."""
+"""HTTP routes for VECNA."""

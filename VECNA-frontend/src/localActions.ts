@@ -20,7 +20,7 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, init);
   if (response.ok) return response.json() as Promise<T>;
   const body = await response.json().catch(() => null) as { detail?: string } | null;
-  throw new Error(body?.detail || "Jarvis could not complete that local action.");
+  throw new Error(body?.detail || "Vecna could not complete that local action.");
 }
 
 export async function getLocalActionStatus(): Promise<boolean> {

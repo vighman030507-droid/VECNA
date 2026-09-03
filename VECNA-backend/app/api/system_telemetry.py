@@ -12,13 +12,10 @@ from fastapi import APIRouter, HTTPException, status
 from app.schemas import (
     MemoryAddRequest,
     MemoryListResponse,
-    ScreenAnalyzeRequest,
-    ScreenAnalyzeResponse,
     SystemToolRequest,
     SystemToolResponse,
     TelemetryResponse,
 )
-from app.services.screen_vision import analyze_desktop
 from app.services.system_tools import (
     adjust_system_volume,
     lock_screen,
@@ -39,16 +36,6 @@ async def get_telemetry() -> TelemetryResponse:
     """Return real-time CPU, RAM, battery/power, disk, and uptime metrics."""
     data = await asyncio.to_thread(get_live_telemetry)
     return TelemetryResponse(**data)
-
-
-# ------------------------------------------------------------------------------
-# 2. HAWKINS OPTICAL SCANNER (SCREEN VISION)
-# ------------------------------------------------------------------------------
-@router.post("/screen/analyze", response_model=ScreenAnalyzeResponse)
-async def analyze_screen_endpoint(req: ScreenAnalyzeRequest) -> ScreenAnalyzeResponse:
-    """Capture host desktop screenshot and analyze active workspace via multimodal vision model."""
-    analysis = await asyncio.to_thread(analyze_desktop, req.query)
-    return ScreenAnalyzeResponse(analysis=analysis)
 
 
 # ------------------------------------------------------------------------------

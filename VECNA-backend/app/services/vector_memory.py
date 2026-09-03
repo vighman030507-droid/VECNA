@@ -74,7 +74,7 @@ class VectorMemoryVault:
         seeds = [
             "Creator is Vighnesh Singh, a 2nd year student studying Automation and Robotics Engineering at VESIT Mumbai.",
             "Vighnesh's email is vighman030507@gmail.com and contact number is 7304252207.",
-            "VECNA is an advanced voice assistant inspired by JARVIS from Iron Man (Marvel), wrapped in the supernatural entity Vecna / Henry Creel from Stranger Things (Netflix).",
+            "VECNA is an advanced voice assistant wrapped in the supernatural entity Vecna / Henry Creel from Stranger Things (Netflix).",
             "VECNA possesses multimodal intelligence: audio speech synthesis, real-time speech transcription, screen vision, and autonomous actions.",
         ]
         for s in seeds:

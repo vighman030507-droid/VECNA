@@ -46,23 +46,6 @@ export async function fetchLiveTelemetry(): Promise<LiveTelemetry | null> {
   }
 }
 
-export async function analyzeScreen(query: string = "Analyze what is currently on my screen."): Promise<string> {
-  if (DEMO_MODE) {
-    return "Demo Mode: Screen analysis vision requires live backend with Groq/Gemini key.";
-  }
-
-  const res = await fetch(`${API_BASE_URL}/screen/analyze`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query }),
-  });
-
-  if (!res.ok) {
-    throw new Error("Optical scanner failed to analyze the screen.");
-  }
-  const body = (await res.json()) as { analysis: string };
-  return body.analysis;
-}
 
 export async function fetchMemories(): Promise<MemoryItem[]> {
   try {

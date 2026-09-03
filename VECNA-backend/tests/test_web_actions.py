@@ -7,11 +7,11 @@ client = TestClient(app)
 
 
 def test_direct_website_plan_uses_only_user_http_url() -> None:
-    plan = make_web_action_plan("Please open https://example.org/products?tag=jarvis")
+    plan = make_web_action_plan("Please open https://example.org/products?tag=vecna")
     assert plan == {
         "kind": "open_website",
         "label": "example.org",
-        "url": "https://example.org/products?tag=jarvis",
+        "url": "https://example.org/products?tag=vecna",
     }
 
 

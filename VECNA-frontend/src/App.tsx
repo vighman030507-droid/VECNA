@@ -15,10 +15,10 @@ import { isWebActionRequest, planWebAction, WebAction } from "./webActions";
 import { executeLocalAction, getLocalActionStatus, isLocalActionRequest, LocalAction, planLocalAction } from "./localActions";
 import { DEMO_MODE } from "./config/mode";
 import { CurseTimerWidget } from "./components/CurseTimerWidget";
-import { analyzeScreen, fetchLiveTelemetry, LiveTelemetry } from "./api/systemTools";
+import { fetchLiveTelemetry, LiveTelemetry } from "./api/systemTools";
 import backgroundVideo from "./assets/Futuristic_web_interface_backgro…_1080p_202609011655.mp4";
 
-type Message = { author: "user" | "jarvis"; text: string };
+type Message = { author: "user" | "vecna"; text: string };
 type Status = "idle" | "listening" | "thinking" | "speaking" | "error";
 type WakeWordStatus = "listening" | "standby" | "triggered" | "unsupported" | "error";
 type PendingAction =
@@ -90,7 +90,6 @@ export function App() {
   const [curseActive, setCurseActive] = useState(false);
   const [angerLevel, setAngerLevel] = useState(0);
   const [telemetry, setTelemetry] = useState<LiveTelemetry | null>(null);
-  const [isScanningScreen, setIsScanningScreen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,7 +126,7 @@ export function App() {
       setBackendState(healthy ? "ready" : "error");
       setBackendStarting(false);
       if (!healthy) {
-        setError("Jarvis backend did not start. Restart the app and try again.");
+        setError("Vecna backend did not start. Restart the app and try again.");
         return;
       }
       const voiceRequest = fetchVoices();
@@ -552,45 +551,11 @@ export function App() {
     }
   }
 
-  async function handleScanScreen() {
-    if (isScanningScreen || status === "thinking" || backendStarting) return;
-    setIsScanningScreen(true);
-    stopSpeech();
-    setStatus("thinking");
-    setMessages((current) => [...current, { author: "user", text: "👁 [Eye of Vecna: Inspecting Workspace]" }]);
-    try {
-      const result = await analyzeScreen();
-      setMessages((current) => [...current, { author: "jarvis", text: result }]);
-      void playSpeech(result);
-      setStatus("idle");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Optical screen scan failed.");
-      setStatus("error");
-    } finally {
-      setIsScanningScreen(false);
-    }
-  }
-
-  async function askJarvis(text: string) {
+  async function askVecna(text: string) {
     stopSpeech();
     setError("");
     setPendingAction(null);
     setMessages((current) => [...current, { author: "user", text }]);
-
-    // Screen vision voice command intercept
-    if (/\b(look at my screen|what('s| is) on my screen|analyze screen|scan screen|see my screen|eye of vecna)\b/i.test(text)) {
-      setStatus("thinking");
-      try {
-        const analysis = await analyzeScreen(text);
-        setMessages((current) => [...current, { author: "jarvis", text: analysis }]);
-        void playSpeech(analysis);
-        setStatus("idle");
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Optical screen analysis failed.");
-        setStatus("error");
-      }
-      return;
-    }
 
     const isDevanagari = /[\u0900-\u097F]/.test(text);
     const effectiveLang: "en" | "hi" = isDevanagari ? "hi" : language;
@@ -602,14 +567,14 @@ export function App() {
     if (DEMO_MODE) {
       if (isLocalActionRequest(text)) {
         const reply = "Local app actions will be connected to the backend on Day 2.";
-        setMessages((current) => [...current, { author: "jarvis", text: reply }]);
+        setMessages((current) => [...current, { author: "vecna", text: reply }]);
         setStatus("idle");
         void playSpeech(reply);
         return;
       }
       if (isWebActionRequest(text)) {
         const reply = "Web actions will be connected to the backend on Day 2.";
-        setMessages((current) => [...current, { author: "jarvis", text: reply }]);
+        setMessages((current) => [...current, { author: "vecna", text: reply }]);
         setStatus("idle");
         void playSpeech(reply);
         return;
@@ -618,11 +583,11 @@ export function App() {
       try {
         const result = await sendChatMessage(sessionId.current, text, effectiveLang);
         setChatState("ready");
-        setMessages((current) => [...current, { author: "jarvis", text: result.reply }]);
+        setMessages((current) => [...current, { author: "vecna", text: result.reply }]);
         void playSpeech(result.reply);
       } catch (reason) {
         setChatState("error");
-        setError(reason instanceof Error ? reason.message : "Jarvis could not process that message.");
+        setError(reason instanceof Error ? reason.message : "Vecna could not process that message.");
         setStatus("error");
       }
       return;
@@ -636,7 +601,7 @@ export function App() {
         setStatus("idle");
       } catch (reason) {
         setLocalActionsState("error");
-        setError(reason instanceof Error ? reason.message : "Jarvis could not prepare that local application.");
+        setError(reason instanceof Error ? reason.message : "Vecna could not prepare that local application.");
         setStatus("error");
       }
       return;
@@ -649,7 +614,7 @@ export function App() {
         setPendingAction({ type: "web", action: webAction });
         setStatus("idle");
       } catch (reason) {
-        setError(reason instanceof Error ? reason.message : "Jarvis could not prepare that web action.");
+        setError(reason instanceof Error ? reason.message : "Vecna could not prepare that web action.");
         setStatus("error");
       }
       return;
@@ -675,12 +640,12 @@ export function App() {
 
       setMessages((current) => [
         ...current,
-        { author: "jarvis", text: result.corruptedReply || result.reply },
+        { author: "vecna", text: result.corruptedReply || result.reply },
       ]);
       void playSpeech(result.reply, newAnger);
     } catch (reason) {
       setChatState("error");
-      setError(reason instanceof Error ? reason.message : "Jarvis could not process that message.");
+      setError(reason instanceof Error ? reason.message : "Vecna could not process that message.");
       setStatus("error");
     }
   }
@@ -693,7 +658,7 @@ export function App() {
     if (currentAction.type === "web") {
       window.open(currentAction.action.url, "_blank", "noopener,noreferrer");
       const reply = `Opening ${currentAction.action.label}.`;
-      setMessages((current) => [...current, { author: "jarvis", text: reply }]);
+      setMessages((current) => [...current, { author: "vecna", text: reply }]);
       setStatus("idle");
       void playSpeech(reply);
       return;
@@ -703,13 +668,13 @@ export function App() {
       setStatus("thinking");
       try {
         const result = await executeLocalAction(currentAction.action.appId);
-        setMessages((current) => [...current, { author: "jarvis", text: result.message }]);
+        setMessages((current) => [...current, { author: "vecna", text: result.message }]);
         setLocalActionsState("ready");
         setStatus("idle");
         void playSpeech(result.message);
       } catch (reason) {
         setLocalActionsState("error");
-        setError(reason instanceof Error ? reason.message : "Jarvis could not open that local application.");
+        setError(reason instanceof Error ? reason.message : "Vecna could not open that local application.");
         setStatus("error");
       }
     }
@@ -718,7 +683,7 @@ export function App() {
   function cancelAction() {
     setPendingAction(null);
     const reply = "Action cancelled.";
-    setMessages((current) => [...current, { author: "jarvis", text: reply }]);
+    setMessages((current) => [...current, { author: "vecna", text: reply }]);
     setStatus("idle");
   }
 
@@ -727,7 +692,7 @@ export function App() {
     const text = input.trim();
     if (!text || status === "thinking" || backendStarting) return;
     setInput("");
-    await askJarvis(text);
+    await askVecna(text);
   }
 
   async function startListening() {
@@ -802,7 +767,7 @@ export function App() {
           const demoNotice = "Voice transcription will be connected on Day 2.";
           setMessages((current) => [
             ...current,
-            { author: "jarvis", text: demoNotice },
+            { author: "vecna", text: demoNotice },
           ]);
           setSttState("ready");
           setStatus("idle");
@@ -830,10 +795,10 @@ export function App() {
             }
             setSttState("ready");
             setError("");
-            await askJarvis(transcript);
+            await askVecna(transcript);
           } catch (reason) {
             setSttState("error");
-            setError(reason instanceof Error ? reason.message : "Jarvis could not transcribe that recording.");
+            setError(reason instanceof Error ? reason.message : "Vecna could not transcribe that recording.");
             setStatus("error");
           }
         })();
@@ -850,7 +815,7 @@ export function App() {
       setError(
         reason instanceof Error && reason.name === "NotAllowedError"
           ? "Microphone permission was denied. Text chat remains available."
-          : "Jarvis could not access the microphone."
+          : "Vecna could not access the microphone."
       );
       setStatus("error");
     }
@@ -936,7 +901,7 @@ export function App() {
       </MovablePanel>
       <MovablePanel id="conversation" label="Vecna conversation" className="chat-panel" defaultPosition={panelPositions.chat}>
         <section className="chat-card" aria-label="Vecna assistant">
-          <p className="jarvis-brand">VECNA</p>
+          <p className="vecna-brand">VECNA</p>
           <h1>{curseActive ? "CONTAINMENT BREACHED." : "OBSERVING FRAIL MORTALS."}</h1>
           <p className="connection-state">{stateLabel}</p>
           <div className="messages" ref={messagesRef} aria-live="polite">
@@ -946,7 +911,7 @@ export function App() {
                 {message.text}
               </p>
             ))}
-            {status === "thinking" && <p className="message jarvis">Thinking…</p>}
+            {status === "thinking" && <p className="message vecna">Thinking…</p>}
             {pendingAction && (
               <div className="web-action-confirmation" role="alert">
                 {pendingAction.type === "web" ? (
@@ -993,30 +958,9 @@ export function App() {
               value={input}
               maxLength={2000}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Type a message or say 'look at my screen'…"
+              placeholder="Message Vecna or hold to talk…"
               disabled={status === "thinking" || backendStarting}
             />
-            <button
-              type="button"
-              className="scan-screen-btn"
-              onClick={() => void handleScanScreen()}
-              disabled={isScanningScreen || status === "thinking" || backendStarting}
-              title="Eye of Vecna: Inspect desktop screen"
-              style={{
-                background: "rgba(255, 45, 85, 0.2)",
-                border: "1px solid rgba(255, 45, 85, 0.45)",
-                color: "#ff88a3",
-                padding: "0 0.65rem",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontSize: "0.68rem",
-                fontFamily: "'Share Tech Mono', monospace",
-                letterSpacing: "0.06em",
-                whiteSpace: "nowrap"
-              }}
-            >
-              {isScanningScreen ? "SCANNING…" : "👁 SCAN"}
-            </button>
             <button type="submit" disabled={!input.trim() || status === "thinking" || backendStarting}>
               Send
             </button>

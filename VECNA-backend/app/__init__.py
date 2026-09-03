@@ -1,1 +1,1 @@
-"""Jarvis FastAPI service."""
+"""VECNA Intelligence FastAPI service."""

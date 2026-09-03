@@ -49,12 +49,3 @@ def test_silent_web_search(monkeypatch) -> None:
     assert res.json()["ok"] is True
     assert len(res.json()["data"]) == 1
 
-
-def test_screen_analyze(monkeypatch) -> None:
-    def fake_analyze(query: str):
-        return "I see code editors and terminal sessions open on your mortal screen."
-
-    monkeypatch.setattr("app.api.system_telemetry.analyze_desktop", fake_analyze)
-    res = client.post("/api/screen/analyze", json={"query": "What is open?"})
-    assert res.status_code == 200
-    assert "mortal screen" in res.json()["analysis"]

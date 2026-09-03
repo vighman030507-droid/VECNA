@@ -30,7 +30,7 @@ def test_transcribe_valid_webm(monkeypatch) -> None:
         assert audio == b"webm-bytes"
         assert filename == "recording.webm"
         assert content_type == "audio/webm"
-        return "Hello Jarvis"
+        return "Hello Vecna"
 
     monkeypatch.setattr("app.api.speech.transcribe", fake_transcribe)
     response = client.post(
@@ -40,4 +40,4 @@ def test_transcribe_valid_webm(monkeypatch) -> None:
     )
 
     assert response.status_code == 200
-    assert response.json() == {"transcript": "Hello Jarvis"}
+    assert response.json() == {"transcript": "Hello Vecna"}

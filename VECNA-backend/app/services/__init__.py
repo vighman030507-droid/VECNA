@@ -1,1 +1,1 @@
-"""External providers and short-lived state for Jarvis."""
+"""External providers and short-lived state for VECNA."""

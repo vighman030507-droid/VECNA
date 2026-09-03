@@ -73,7 +73,7 @@ def execute_local_action(app_id: LocalAppId) -> LocalApp:
     import subprocess
 
     if sys.platform == "win32":
-        # Enable foreground window permission so the application window pops up in front of Jarvis
+        # Enable foreground window permission so the application window pops up in front of Vecna
         try:
             import ctypes
             ctypes.windll.user32.AllowSetForegroundWindow(-1)
