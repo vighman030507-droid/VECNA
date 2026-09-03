@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 # pyrefly: ignore [missing-import]
@@ -96,3 +96,56 @@ class LocalActionExecuteResponse(BaseModel):
 
 class LocalActionStatusResponse(BaseModel):
     enabled: bool
+
+
+# ==============================================================================
+# NEXUS-VII REPLICATED SCHEMAS
+# ==============================================================================
+class TelemetryResponse(BaseModel):
+    cpu_percent: float
+    ram_percent: float
+    ram_used_gb: float
+    ram_total_gb: float
+    power_percent: float
+    power_status: str
+    disk_percent: float
+    disk_free_gb: float
+    system_time: str
+    system_date: str
+    uptime: str
+
+
+class ScreenAnalyzeRequest(BaseModel):
+    query: str = "Analyze what is currently open on my screen."
+
+
+class ScreenAnalyzeResponse(BaseModel):
+    analysis: str
+
+
+class MemoryAddRequest(BaseModel):
+    text: str = Field(min_length=3, max_length=5000)
+
+
+class MemoryItem(BaseModel):
+    id: int
+    text: str
+    created_at: str
+
+
+class MemoryListResponse(BaseModel):
+    memories: list[MemoryItem]
+
+
+class SystemToolRequest(BaseModel):
+    tool: Literal["volume", "lock_screen", "media", "web_search"]
+    level: int | None = None
+    action: str | None = None
+    query: str | None = None
+
+
+class SystemToolResponse(BaseModel):
+    ok: bool
+    message: str
+    data: Any | None = None
+

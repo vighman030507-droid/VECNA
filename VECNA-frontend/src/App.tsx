@@ -15,6 +15,7 @@ import { isWebActionRequest, planWebAction, WebAction } from "./webActions";
 import { executeLocalAction, getLocalActionStatus, isLocalActionRequest, LocalAction, planLocalAction } from "./localActions";
 import { DEMO_MODE } from "./config/mode";
 import { CurseTimerWidget } from "./components/CurseTimerWidget";
+import { analyzeScreen, fetchLiveTelemetry, LiveTelemetry } from "./api/nexusTools";
 import backgroundVideo from "./assets/Futuristic_web_interface_backgro…_1080p_202609011655.mp4";
 
 type Message = { author: "user" | "jarvis"; text: string };
@@ -88,6 +89,22 @@ export function App() {
   const [fearLevel, setFearLevel] = useState<1 | 2 | 3>(1);
   const [curseActive, setCurseActive] = useState(false);
   const [angerLevel, setAngerLevel] = useState(0);
+  const [telemetry, setTelemetry] = useState<LiveTelemetry | null>(null);
+  const [isScanningScreen, setIsScanningScreen] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const poll = async () => {
+      const data = await fetchLiveTelemetry();
+      if (!cancelled && data) setTelemetry(data);
+    };
+    void poll();
+    const interval = setInterval(poll, 3500);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -262,6 +279,23 @@ export function App() {
           const res = event.results[i];
           for (let j = 0; j < res.length; j++) {
             const transcript = res[j].transcript;
+            const lower = transcript.toLowerCase();
+
+            // Voice Barge-in / Interrupt detection: stop speaking immediately if user interrupts
+            if (statusRef.current === "speaking" && (
+              lower.includes("stop") ||
+              lower.includes("chup") ||
+              lower.includes("ruko") ||
+              lower.includes("quiet") ||
+              lower.includes("shut up") ||
+              lower.includes("shh") ||
+              isWakeWordTrigger(transcript)
+            )) {
+              stopSpeech();
+              setStatus("idle");
+              return;
+            }
+
             if (isWakeWordTrigger(transcript)) {
               shouldWakeListenRef.current = false;
               setWakeWordStatus("triggered");
@@ -328,9 +362,9 @@ export function App() {
     }
   }, [wakeWordStatus, startWakeWord]);
 
-  // Manage hands-free wake word lifecycle (listening when idle/error, paused when speaking/thinking)
+  // Manage hands-free wake word lifecycle (listening when idle/error/speaking for barge-in)
   useEffect(() => {
-    if (status === "idle" || status === "error") {
+    if (status === "idle" || status === "error" || status === "speaking") {
       startWakeWord();
     } else {
       shouldWakeListenRef.current = false;
@@ -518,11 +552,45 @@ export function App() {
     }
   }
 
+  async function handleScanScreen() {
+    if (isScanningScreen || status === "thinking" || backendStarting) return;
+    setIsScanningScreen(true);
+    stopSpeech();
+    setStatus("thinking");
+    setMessages((current) => [...current, { author: "user", text: "👁 [Eye of Vecna: Inspecting Workspace]" }]);
+    try {
+      const result = await analyzeScreen();
+      setMessages((current) => [...current, { author: "jarvis", text: result }]);
+      void playSpeech(result);
+      setStatus("idle");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Optical screen scan failed.");
+      setStatus("error");
+    } finally {
+      setIsScanningScreen(false);
+    }
+  }
+
   async function askJarvis(text: string) {
     stopSpeech();
     setError("");
     setPendingAction(null);
     setMessages((current) => [...current, { author: "user", text }]);
+
+    // Screen vision voice command intercept
+    if (/\b(look at my screen|what('s| is) on my screen|analyze screen|scan screen|see my screen|eye of vecna)\b/i.test(text)) {
+      setStatus("thinking");
+      try {
+        const analysis = await analyzeScreen(text);
+        setMessages((current) => [...current, { author: "jarvis", text: analysis }]);
+        void playSpeech(analysis);
+        setStatus("idle");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Optical screen analysis failed.");
+        setStatus("error");
+      }
+      return;
+    }
 
     const isDevanagari = /[\u0900-\u097F]/.test(text);
     const effectiveLang: "en" | "hi" = isDevanagari ? "hi" : language;
@@ -861,7 +929,7 @@ export function App() {
         />
       </MovablePanel>
       <MovablePanel id="system-status" label="System status" className="status-panel" defaultPosition={panelPositions.status}>
-        <SystemStatus items={statusItems} />
+        <SystemStatus items={statusItems} telemetry={telemetry} />
       </MovablePanel>
       <MovablePanel id="briefing" label="Local system briefing" className="briefing-panel-wrapper" defaultPosition={panelPositions.briefing}>
         <BriefingPanel />
@@ -925,9 +993,30 @@ export function App() {
               value={input}
               maxLength={2000}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Type a message…"
+              placeholder="Type a message or say 'look at my screen'…"
               disabled={status === "thinking" || backendStarting}
             />
+            <button
+              type="button"
+              className="scan-screen-btn"
+              onClick={() => void handleScanScreen()}
+              disabled={isScanningScreen || status === "thinking" || backendStarting}
+              title="Eye of Vecna: Inspect desktop screen"
+              style={{
+                background: "rgba(255, 45, 85, 0.2)",
+                border: "1px solid rgba(255, 45, 85, 0.45)",
+                color: "#ff88a3",
+                padding: "0 0.65rem",
+                borderRadius: "4px",
+                cursor: "pointer",
+                fontSize: "0.68rem",
+                fontFamily: "'Share Tech Mono', monospace",
+                letterSpacing: "0.06em",
+                whiteSpace: "nowrap"
+              }}
+            >
+              {isScanningScreen ? "SCANNING…" : "👁 SCAN"}
+            </button>
             <button type="submit" disabled={!input.trim() || status === "thinking" || backendStarting}>
               Send
             </button>

@@ -1,0 +1,99 @@
+[
+  {
+    "id": 1,
+    "text": "Creator is Vighnesh Singh, a 2nd year student studying Automation and Robotics Engineering at VESIT Mumbai.",
+    "vector": {
+      "creator": 1.0,
+      "vighnesh": 1.0,
+      "singh": 1.0,
+      "2nd": 1.0,
+      "year": 1.0,
+      "student": 1.0,
+      "studying": 1.0,
+      "automation": 1.0,
+      "and": 1.0,
+      "robotics": 1.0,
+      "engineering": 1.0,
+      "vesit": 1.0,
+      "mumbai": 1.0
+    },
+    "created_at": "2026-09-03T20:28:33.876915"
+  },
+  {
+    "id": 2,
+    "text": "Vighnesh's email is vighman030507@gmail.com and contact number is 7304252207.",
+    "vector": {
+      "vighnesh": 1.0,
+      "email": 1.0,
+      "vighman030507": 1.0,
+      "gmail": 1.0,
+      "com": 1.0,
+      "and": 1.0,
+      "contact": 1.0,
+      "number": 1.0,
+      "7304252207": 1.0
+    },
+    "created_at": "2026-09-03T20:28:33.877347"
+  },
+  {
+    "id": 3,
+    "text": "VECNA is an advanced voice assistant inspired by JARVIS from Iron Man (Marvel), wrapped in the supernatural entity Vecna / Henry Creel from Stranger Things (Netflix).",
+    "vector": {
+      "vecna": 2.0,
+      "advanced": 1.0,
+      "voice": 1.0,
+      "assistant": 1.0,
+      "inspired": 1.0,
+      "jarvis": 1.0,
+      "from": 2.0,
+      "iron": 1.0,
+      "man": 1.0,
+      "marvel": 1.0,
+      "wrapped": 1.0,
+      "the": 1.0,
+      "supernatural": 1.0,
+      "entity": 1.0,
+      "henry": 1.0,
+      "creel": 1.0,
+      "stranger": 1.0,
+      "things": 1.0,
+      "netflix": 1.0
+    },
+    "created_at": "2026-09-03T20:28:33.877466"
+  },
+  {
+    "id": 4,
+    "text": "VECNA possesses multimodal intelligence: audio speech synthesis, real-time speech transcription, screen vision, and autonomous actions.",
+    "vector": {
+      "vecna": 1.0,
+      "possesses": 1.0,
+      "multimodal": 1.0,
+      "intelligence": 1.0,
+      "audio": 1.0,
+      "speech": 2.0,
+      "synthesis": 1.0,
+      "real": 1.0,
+      "time": 1.0,
+      "transcription": 1.0,
+      "screen": 1.0,
+      "vision": 1.0,
+      "and": 1.0,
+      "autonomous": 1.0,
+      "actions": 1.0
+    },
+    "created_at": "2026-09-03T20:28:33.877574"
+  },
+  {
+    "id": 5,
+    "text": "User enjoys dark atmospheric audio design.",
+    "vector": {
+      "user": 1.0,
+      "enjoys": 1.0,
+      "dark": 1.0,
+      "atmospheric": 1.0,
+      "audio": 1.0,
+      "design": 1.0
+    },
+    "created_at": "2026-09-03T20:29:02.976252"
+  }
+]

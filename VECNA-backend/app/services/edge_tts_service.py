@@ -11,6 +11,7 @@ from app.schemas import Voice
 VOICES = (
     Voice(id="en-US-GuyNeural",          label="Guy — US English"),
     Voice(id="en-US-ChristopherNeural",  label="Christopher (Deep) — US English"),
+    Voice(id="en-US-BrianMultilingualNeural", label="Brian (Multilingual) — US/UK"),
     Voice(id="en-GB-RyanNeural",         label="Ryan — UK English"),
     Voice(id="en-US-JennyNeural",        label="Jenny — US English"),
     Voice(id="hi-IN-MadhurNeural",       label="Madhur (Hindi/Hinglish) — India"),
@@ -38,12 +39,17 @@ def available_voices() -> list[Voice]:
 
 
 def clean_text_for_speech(text: str, max_chars: int = 1200) -> str:
-    """Strip Zalgo marks, markdown syntax, and format text for smooth speech synthesis."""
+    """Strip Zalgo marks, code blocks, markdown syntax, and format text for smooth speech synthesis."""
+    if not text:
+        return ""
     cleaned = re.sub(r"[\u0300-\u036f\u1dc0-\u1dff\u20d0-\u20ff\ufe20-\ufe2f]", "", text)
+    # Strip code blocks entirely so TTS does not read raw programming syntax
+    cleaned = re.sub(r"```[\s\S]*?```", " ", cleaned)
+    cleaned = re.sub(r"`([^`]+)`", r"\1", cleaned)
     # Strip markdown headers, horizontal rules, links, formatting
     cleaned = re.sub(r"#{1,6}\s*", "", cleaned)
     cleaned = re.sub(r"[-*_]{3,}", " ", cleaned)
-    cleaned = re.sub(r"[*_~`#>]", "", cleaned)
+    cleaned = re.sub(r"[*_~#>]", "", cleaned)
     cleaned = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", cleaned)
     cleaned = re.sub(r"^\s*[-+*]\s+", "", cleaned, flags=re.MULTILINE)
     cleaned = re.sub(r"\n{2,}", "\n", cleaned)

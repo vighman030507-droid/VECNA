@@ -226,56 +226,27 @@ def generate_reply(
     if anger_level > 75:
         system_prompt += rage_overlay
 
+    # Semantic Vector Memory Recall
+    try:
+        from app.services.vector_memory import memory_vault
+        recalled_memories = memory_vault.recall(user_text, top_k=2)
+        if recalled_memories:
+            mem_block = "\n[LONG-TERM MEMORY VAULT]:\n" + "\n".join(f"- {m}" for m in recalled_memories)
+            system_prompt += mem_block
+    except Exception:
+        pass
+
     messages: list[dict[str, str]] = [{"role": "system", "content": system_prompt}]
     messages.extend(history)
     messages.append({"role": "user", "content": user_text})
 
-    headers = {
-        "Authorization": f"Bearer {settings.groq_api_key}",
-        "Content-Type": "application/json",
-    }
-
-    # Model fallback chain in case of rate limits or transient outages
-    models_to_try = [settings.groq_chat_model]
-    for alt in ("qwen/qwen3.8-27b", "openai/gpt-oss-120b", "openai/gpt-oss-20b"):
-        if alt not in models_to_try:
-            models_to_try.append(alt)
-
-    last_error: Exception | None = None
-    data = None
-
-    for model_name in models_to_try:
-        payload = {
-            "model": model_name,
-            "messages": messages,
-            "temperature": 0.72,
-            "max_tokens": 1024,
-        }
-        try:
-            response = requests.post(GROQ_CHAT_URL, headers=headers, json=payload, timeout=25)
-            if response.status_code == 200:
-                data = response.json()
-                break
-            # If rate-limited (429) or temporary server error, try next model
-            last_error = GroqChatError(f"Groq chat failed: {response.text}", status_code=response.status_code)
-        except requests.RequestException as e:
-            last_error = GroqChatError(f"Chat request failed: {e}")
-
-    if not data:
-        raise last_error or GroqChatError("All model providers exhausted.")
+    from app.services.neural_router import dispatch_completion, NeuralHotSwapError
 
     try:
-        choice = data["choices"][0]
-        message_obj = choice.get("message", {})
-        reply = message_obj.get("content", "").strip()
-
-        # Fallback if reasoning model used tokens without populating content
-        if not reply and message_obj.get("reasoning"):
-            reply = message_obj["reasoning"].strip()
-
-        if not reply:
-            reply = "..."
-    except (KeyError, IndexError):
-        raise GroqChatError("Malformed response from Groq API.")
+        reply, provider_used = dispatch_completion(messages, temperature=0.72, max_tokens=1024)
+    except NeuralHotSwapError as e:
+        raise GroqChatError(str(e), status_code=503) from e
+    except Exception as e:
+        raise GroqChatError(f"Inference error: {e}", status_code=500) from e
 
     return sanitize_vecna_reply(reply)
