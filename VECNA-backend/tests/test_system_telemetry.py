@@ -28,15 +28,17 @@ def test_vector_memory_flow() -> None:
 
 
 def test_system_tools_volume_and_media() -> None:
-    # Test volume
+    # Test volume (disabled for privacy)
     vol_res = client.post("/api/tools/execute", json={"tool": "volume", "level": 60})
     assert vol_res.status_code == 200
-    assert vol_res.json()["ok"] is True
+    assert vol_res.json()["ok"] is False
+    assert "privacy" in vol_res.json()["message"]
 
-    # Test media
+    # Test media (disabled for privacy)
     media_res = client.post("/api/tools/execute", json={"tool": "media", "action": "play"})
     assert media_res.status_code == 200
-    assert media_res.json()["ok"] is True
+    assert media_res.json()["ok"] is False
+    assert "privacy" in media_res.json()["message"]
 
 
 def test_silent_web_search(monkeypatch) -> None:

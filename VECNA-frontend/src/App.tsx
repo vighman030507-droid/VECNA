@@ -629,15 +629,6 @@ export function App() {
       if (result.curseActive !== undefined) setCurseActive(result.curseActive);
       setAngerLevel(newAnger);
 
-      // Turn 2: Automatic local action execution
-      if (result.fearLevel === 2 && localActionsEnabled) {
-        try {
-          void executeLocalAction("notepad");
-        } catch {
-          // ignore if non-Windows or disabled
-        }
-      }
-
       setMessages((current) => [
         ...current,
         { author: "vecna", text: result.corruptedReply || result.reply },
