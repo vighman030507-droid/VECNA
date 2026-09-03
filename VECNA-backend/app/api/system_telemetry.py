@@ -1,7 +1,7 @@
 """
-System Telemetry, Vision, Memory, and Tool Execution Endpoints for VECNA.
-Provides system telemetry, Hawkins optical scanner (screen vision),
-vector memory vault management, and autonomous system/web tool execution.
+System Telemetry, Memory, and Tool Execution Endpoints for VECNA.
+Provides live host metrics, vector memory vault management,
+DuckDuckGo web research, and autonomous tool execution.
 """
 from __future__ import annotations
 

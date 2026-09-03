@@ -49,7 +49,12 @@ def clean_text_for_speech(text: str, max_chars: int = 1200) -> str:
     # Strip markdown headers, horizontal rules, links, formatting
     cleaned = re.sub(r"#{1,6}\s*", "", cleaned)
     cleaned = re.sub(r"[-*_]{3,}", " ", cleaned)
-    cleaned = re.sub(r"[*_~#>]", "", cleaned)
+    # Strip bold: **text** → text
+    cleaned = re.sub(r"\*\*(.+?)\*\*", r"\1", cleaned)
+    # Strip italic: *text* → text (not lone asterisks)
+    cleaned = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"\1", cleaned)
+    # Strip remaining stray markdown chars
+    cleaned = re.sub(r"[~#>]", "", cleaned)
     cleaned = re.sub(r"\[([^\]]+)\]\([^\)]+\)", r"\1", cleaned)
     cleaned = re.sub(r"^\s*[-+*]\s+", "", cleaned, flags=re.MULTILINE)
     cleaned = re.sub(r"\n{2,}", "\n", cleaned)

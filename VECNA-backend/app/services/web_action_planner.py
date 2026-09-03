@@ -40,14 +40,32 @@ def _clean_query(text: str, remove_prefixes: list[str]) -> str:
     cleaned = text.strip()
     # Strip conversational preambles
     cleaned = re.sub(r"^(?:hey|hi|hello|ok|okay)?(?:\s+(?:vecna|bot))?(?:[,\s]+)?(?:can you|please|could you)?(?:[,\s]+)?", "", cleaned, flags=re.IGNORECASE)
+    # Strip all action-verb prefixes given by caller
     for prefix in remove_prefixes:
-        cleaned = re.sub(rf"^{prefix}\s*", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(rf"^{re.escape(prefix)}\s*", "", cleaned, flags=re.IGNORECASE)
+    # Strip redirect phrases like "open youtube and search for", "youtube and watch", etc.
+    cleaned = re.sub(
+        r"\b(open|launch)?\s*(youtube|spotify|netflix|hotstar|jiohotstar|prime\s*video|amazon\s*prime|github|reddit|twitch|jiocinema)\s+(and\s+)?(search\s+(for)?|watch|play|find|look\s*up|show)\s*",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    # Strip platform "for" residue: "youtube for vecna" → "vecna"
+    cleaned = re.sub(
+        r"\b(youtube|spotify|netflix|hotstar|github|reddit|twitch|jiocinema)\s+for\s+",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+    # Strip trailing platform names at end of prepositions
     cleaned = re.sub(
         r"\b(on|in|using|via|at)\s+(youtube|spotify|google|hotstar|jiohotstar|jiocinema|netflix|prime\s*video|amazon\s*prime|amazon|github|reddit|twitch)\b",
         "",
         cleaned,
         flags=re.IGNORECASE,
     )
+    # Strip leading "for " leftover after prefix removal
+    cleaned = re.sub(r"^for\s+", "", cleaned, flags=re.IGNORECASE)
     return cleaned.strip() or text.strip()
 
 

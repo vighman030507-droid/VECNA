@@ -152,7 +152,7 @@ def is_hindi_or_hinglish(text: str) -> bool:
 def sanitize_vecna_reply(text: str) -> str:
     """
     Remove accidental meta-trait recitation like '1. **शांत** – ...' or bold trait declarations,
-    strip meta override leakage, and clean emojis so the persona remains 100% immersive.
+    strip meta override leakage, markdown formatting, and clean emojis so the persona remains 100% immersive.
     """
     # Remove meta prompt/override leakages
     cleaned = re.sub(
@@ -162,13 +162,10 @@ def sanitize_vecna_reply(text: str) -> str:
     )
     # Remove numbered meta trait lists like "1. **शांत** – " or "1. **Calm** - "
     cleaned = re.sub(r"\d+\.\s*\*\*.*?\*\*\s*[-–—:]?\s*", "", cleaned)
-    # Remove standalone bold trait tokens: e.g. **शांत**, **बुद्धिमान**, **गहरा**, **हल्का व्यंग्यात्मक**
-    cleaned = re.sub(
-        r"\*\*(शांत|बुद्धिमान|गहरा|हल्का व्यंग्यात्मक|व्यंग्यात्मक|calm|intelligent|deep|sarcastic|witty)\*\*\s*[-–—:]?\s*",
-        "",
-        cleaned,
-        flags=re.IGNORECASE,
-    )
+    # Remove ALL bold markdown: **any text** → plain text
+    cleaned = re.sub(r"\*\*(.+?)\*\*", r"\1", cleaned)
+    # Remove italic: *text* → plain text (but not lone asterisks)
+    cleaned = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"\1", cleaned)
     # Strip emojis (e.g. 😉, 😊, etc.)
     cleaned = re.sub(r"[\U00010000-\U0010ffff]", "", cleaned)
     # Convert non-breaking hyphens and dashes between letters to regular spaces
