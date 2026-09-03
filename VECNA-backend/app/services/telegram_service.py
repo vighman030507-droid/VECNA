@@ -2,13 +2,17 @@
 Upside Down Telegram Uplink for VECNA.
 Enables remote conversational control, system telemetry, and mobile alerts via Telegram.
 Strictly restricted to the authorized TELEGRAM_ALLOWED_UID.
+
+Thread-safe implementation using python-telegram-bot v20+ lifecycle API
+(initialize/start/updater.start_polling) instead of run_polling() to prevent
+event loop conflicts when running alongside FastAPI/uvicorn.
 """
 from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import threading
-from typing import Any
 
 from app.settings import settings
 from app.services.telemetry import get_live_telemetry
@@ -17,6 +21,7 @@ from app.services.neural_router import dispatch_completion
 logger = logging.getLogger(__name__)
 
 _bot_thread: threading.Thread | None = None
+_shutdown_event: threading.Event = threading.Event()
 
 
 def start_telegram_uplink() -> None:
@@ -35,6 +40,7 @@ def start_telegram_uplink() -> None:
         logger.warning("python-telegram-bot not installed. Skipping Telegram integration.")
         return
 
+    # Parse allowed user IDs
     allowed_uids: set[int] = set()
     if settings.telegram_allowed_uid:
         for u in settings.telegram_allowed_uid.split(","):
@@ -51,8 +57,24 @@ def start_telegram_uplink() -> None:
         if not update.effective_user or not is_authorized(update.effective_user.id):
             return
         await update.message.reply_text(
-            "🕰️ VECNA // TELEPATHIC UPLINK ESTABLISHED.\n\n"
-            "You have connected to the Upside Down. Speak to me, mortal, or use /status to view host diagnostics."
+            "VECNA // TELEPATHIC UPLINK ESTABLISHED.\n\n"
+            "You have connected to the Upside Down. Speak to me, mortal, "
+            "or use /status to view host diagnostics.\n\n"
+            "Commands:\n"
+            "/start — establish uplink\n"
+            "/status — host telemetry report\n"
+            "/help — show commands"
+        )
+
+    async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        if not update.effective_user or not is_authorized(update.effective_user.id):
+            return
+        await update.message.reply_text(
+            "VECNA COMMAND UPLINK:\n\n"
+            "/start — establish telepathic connection\n"
+            "/status — live host diagnostics\n"
+            "/help — show this menu\n\n"
+            "Or simply type any message to speak directly with Vecna."
         )
 
     async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -60,51 +82,106 @@ def start_telegram_uplink() -> None:
             return
         t = get_live_telemetry()
         await update.message.reply_text(
-            f"⚡ HAWKINS TELEMETRY REPORT:\n\n"
-            f"• CPU Load: {t['cpu_percent']}%\n"
-            f"• RAM Usage: {t['ram_used_gb']} GB / {t['ram_total_gb']} GB ({t['ram_percent']}%)\n"
-            f"• Power / Battery: {t['power_status']}\n"
-            f"• Host Uptime: {t['uptime']}\n"
-            f"• System Time: {t['system_time']}"
+            "HAWKINS TELEMETRY REPORT:\n\n"
+            f"CPU Load:    {t['cpu_percent']}%\n"
+            f"RAM Usage:   {t['ram_used_gb']} GB / {t['ram_total_gb']} GB ({t['ram_percent']}%)\n"
+            f"Disk Free:   {t['disk_free_gb']} GB ({t['disk_percent']}% used)\n"
+            f"Power:       {t['power_status']}\n"
+            f"Uptime:      {t['uptime']}\n"
+            f"System Time: {t['system_time']}, {t['system_date']}"
         )
 
     async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not update.effective_user or not is_authorized(update.effective_user.id):
+            await update.message.reply_text("Unauthorized. The Upside Down does not answer to you.")
             return
 
         user_text = update.message.text if update.message else ""
-        if not user_text:
+        if not user_text or not user_text.strip():
             return
 
-        messages = [
+        # Show typing indicator while generating reply
+        await context.bot.send_chat_action(
+            chat_id=update.effective_chat.id,
+            action="typing",
+        )
+
+        messages: list[dict[str, str]] = [
             {
                 "role": "system",
                 "content": (
-                    "You are Vecna / Henry Creel from the Upside Down communicating via a remote Telegram link. "
-                    "Be chilling, highly intelligent, atmospheric, and brief. Never break character."
+                    "You are Vecna / Henry Creel from the Upside Down communicating via Telegram. "
+                    "Be chilling, highly intelligent, atmospheric, and concise — 2-3 sentences max. "
+                    "Never use markdown formatting (no **bold**, no *italic*, no bullet lists). "
+                    "Never break character. Do not use emojis."
                 ),
             },
-            {"role": "user", "content": user_text},
+            {"role": "user", "content": user_text.strip()},
         ]
 
         try:
-            reply, _ = dispatch_completion(messages, temperature=0.72, max_tokens=300)
+            reply, _ = await asyncio.to_thread(
+                dispatch_completion, messages, 0.72, 300
+            )
+            # Strip any markdown that leaked through
+            reply = re.sub(r"\*\*(.+?)\*\*", r"\1", reply)
+            reply = re.sub(r"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)", r"\1", reply)
             await update.message.reply_text(reply)
         except Exception as e:
-            await update.message.reply_text(f"Psychic link disrupted: {e}")
+            logger.warning("Telegram message handler error: %s", e)
+            await update.message.reply_text(
+                "The psychic link was disrupted. Try again."
+            )
+
+    async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Log errors but keep the bot running."""
+        logger.warning("Telegram update caused error: %s", context.error)
 
     def _run() -> None:
+        """Run the Telegram bot in a fresh isolated event loop."""
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        try:
+
+        async def _bot_main() -> None:
+            from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
             app = ApplicationBuilder().token(token).build()
             app.add_handler(CommandHandler("start", cmd_start))
+            app.add_handler(CommandHandler("help", cmd_help))
             app.add_handler(CommandHandler("status", cmd_status))
             app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-            logger.info("Telegram Uplink active.")
-            app.run_polling(stop_signals=None, close_loop=False)
-        except Exception as e:
-            logger.warning("Telegram bot polling error: %s", e)
+            app.add_error_handler(error_handler)
 
-    _bot_thread = threading.Thread(target=_run, daemon=True)
+            logger.info("Telegram Uplink: Initializing @VECNA_AIBOT...")
+            await app.initialize()
+            await app.start()
+            await app.updater.start_polling(
+                drop_pending_updates=True,
+                allowed_updates=["message"],
+            )
+            logger.info("Telegram Uplink: @VECNA_AIBOT is live and polling.")
+
+            # Keep alive until shutdown signal
+            while not _shutdown_event.is_set():
+                await asyncio.sleep(1.0)
+
+            # Graceful shutdown
+            logger.info("Telegram Uplink: Shutting down...")
+            await app.updater.stop()
+            await app.stop()
+            await app.shutdown()
+            logger.info("Telegram Uplink: Shutdown complete.")
+
+        try:
+            loop.run_until_complete(_bot_main())
+        except Exception as e:
+            logger.warning("Telegram bot fatal error: %s", e)
+        finally:
+            try:
+                loop.close()
+            except Exception:
+                pass
+
+    _shutdown_event.clear()
+    _bot_thread = threading.Thread(target=_run, daemon=True, name="vecna-telegram-uplink")
     _bot_thread.start()
+    logger.info("Telegram Uplink thread started (python-telegram-bot v%s).", __import__("telegram").__version__)
