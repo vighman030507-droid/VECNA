@@ -54,7 +54,14 @@ def start_telegram_uplink() -> None:
         return user_id in allowed_uids
 
     async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not update.effective_user or not is_authorized(update.effective_user.id):
+        if not update.effective_user:
+            return
+        if not is_authorized(update.effective_user.id):
+            await update.message.reply_text(
+                f"Unauthorized. The Upside Down does not answer to you.\n\n"
+                f"Your Telegram User ID is: {update.effective_user.id}\n"
+                f"Add this to TELEGRAM_ALLOWED_UID in .env to grant access."
+            )
             return
         await update.message.reply_text(
             "VECNA // TELEPATHIC UPLINK ESTABLISHED.\n\n"
@@ -67,7 +74,12 @@ def start_telegram_uplink() -> None:
         )
 
     async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        if not update.effective_user or not is_authorized(update.effective_user.id):
+        if not update.effective_user:
+            return
+        if not is_authorized(update.effective_user.id):
+            await update.message.reply_text(
+                f"Unauthorized. Your Telegram User ID is: {update.effective_user.id}"
+            )
             return
         await update.message.reply_text(
             "VECNA COMMAND UPLINK:\n\n"
@@ -93,7 +105,14 @@ def start_telegram_uplink() -> None:
 
     async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         if not update.effective_user or not is_authorized(update.effective_user.id):
-            await update.message.reply_text("Unauthorized. The Upside Down does not answer to you.")
+            uid = update.effective_user.id if update.effective_user else "unknown"
+            logger.warning("Unauthorized access attempt from UID: %s", uid)
+            if update.message:
+                await update.message.reply_text(
+                    f"Unauthorized. The Upside Down does not answer to you.\n\n"
+                    f"Your Telegram User ID is: {uid}\n"
+                    f"Add this ID to TELEGRAM_ALLOWED_UID in .env to grant access."
+                )
             return
 
         user_text = update.message.text if update.message else ""
