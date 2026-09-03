@@ -26,8 +26,20 @@ LOCAL_APPS: tuple[LocalApp, ...] = (
 )
 
 
+MAC_APP_COMMANDS: dict[LocalAppId, list[str]] = {
+    "calculator": ["open", "-a", "Calculator"],
+    "notepad": ["open", "-a", "TextEdit"],
+    "file_explorer": ["open", os.path.expanduser("~")],
+    "vscode": ["open", "-a", "Visual Studio Code"],
+}
+
+
 def local_action_bridge_available() -> bool:
-    return settings.local_actions_enabled and settings.backend_host in {"127.0.0.1", "localhost", "::1"} and sys.platform == "win32"
+    return (
+        settings.local_actions_enabled
+        and settings.backend_host in {"127.0.0.1", "localhost", "::1"}
+        and sys.platform in {"win32", "darwin"}
+    )
 
 
 def find_local_app(text: str) -> LocalApp | None:
@@ -58,22 +70,22 @@ def execute_local_action(app_id: LocalAppId) -> LocalApp:
     if app is None:
         raise ValueError("That application is not allowlisted.")
 
-    # Enable foreground window permission so the application window pops up in front of Jarvis
+    import subprocess
+
     if sys.platform == "win32":
+        # Enable foreground window permission so the application window pops up in front of Jarvis
         try:
             import ctypes
             ctypes.windll.user32.AllowSetForegroundWindow(-1)
         except Exception:
             pass
 
-    # os.startfile delegates a fixed application/protocol target to Windows.
-    # It never receives content from the browser, user, or model.
-    os.startfile(app.launch_target)  # type: ignore[attr-defined]
+        if hasattr(os, "startfile"):
+            os.startfile(app.launch_target)  # type: ignore[attr-defined]
+        else:
+            subprocess.Popen([app.launch_target], shell=True)
 
-    # Ensure the newly opened or existing app window is brought directly to the front
-    if sys.platform == "win32":
         try:
-            import subprocess
             cmd = f"Start-Sleep -Milliseconds 150; (New-Object -ComObject WScript.Shell).AppActivate('{app.label}')"
             subprocess.Popen(
                 ["powershell", "-NoProfile", "-NonInteractive", "-Command", cmd],
@@ -82,5 +94,10 @@ def execute_local_action(app_id: LocalAppId) -> LocalApp:
         except Exception:
             pass
 
+    elif sys.platform == "darwin":
+        cmd = MAC_APP_COMMANDS.get(app_id, ["open", app.launch_target])
+        subprocess.Popen(cmd)
+
     return app
+
 

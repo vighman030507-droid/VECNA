@@ -44,8 +44,11 @@ def _trigger_turn2_horror_file() -> None:
         if sys.platform == "win32":
             if local_action_bridge_available():
                 execute_local_action("notepad")
-            else:
+            elif hasattr(os, "startfile"):
                 os.startfile(str(curse_path))  # type: ignore[attr-defined]
+        elif sys.platform == "darwin":
+            import subprocess
+            subprocess.Popen(["open", "-a", "TextEdit", str(curse_path)])
     except Exception:
         pass
 

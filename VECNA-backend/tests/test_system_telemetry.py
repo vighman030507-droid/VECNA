@@ -43,7 +43,7 @@ def test_silent_web_search(monkeypatch) -> None:
     def fake_search(query: str, max_results: int = 3):
         return [{"title": "Test Title", "snippet": "Test snippet", "href": "https://example.com"}]
 
-    monkeypatch.setattr("app.api.nexus_tools.silent_web_search", fake_search)
+    monkeypatch.setattr("app.api.system_telemetry.silent_web_search", fake_search)
     res = client.post("/api/tools/execute", json={"tool": "web_search", "query": "Vecna season 5"})
     assert res.status_code == 200
     assert res.json()["ok"] is True
@@ -54,7 +54,7 @@ def test_screen_analyze(monkeypatch) -> None:
     def fake_analyze(query: str):
         return "I see code editors and terminal sessions open on your mortal screen."
 
-    monkeypatch.setattr("app.api.nexus_tools.analyze_desktop", fake_analyze)
+    monkeypatch.setattr("app.api.system_telemetry.analyze_desktop", fake_analyze)
     res = client.post("/api/screen/analyze", json={"query": "What is open?"})
     assert res.status_code == 200
     assert "mortal screen" in res.json()["analysis"]

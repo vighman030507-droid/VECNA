@@ -99,7 +99,7 @@ class LocalActionStatusResponse(BaseModel):
 
 
 # ==============================================================================
-# NEXUS-VII REPLICATED SCHEMAS
+# VECNA ADVANCED SYSTEM & TELEMETRY SCHEMAS
 # ==============================================================================
 class TelemetryResponse(BaseModel):
     cpu_percent: float

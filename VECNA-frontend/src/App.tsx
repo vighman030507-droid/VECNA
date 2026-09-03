@@ -15,7 +15,7 @@ import { isWebActionRequest, planWebAction, WebAction } from "./webActions";
 import { executeLocalAction, getLocalActionStatus, isLocalActionRequest, LocalAction, planLocalAction } from "./localActions";
 import { DEMO_MODE } from "./config/mode";
 import { CurseTimerWidget } from "./components/CurseTimerWidget";
-import { analyzeScreen, fetchLiveTelemetry, LiveTelemetry } from "./api/nexusTools";
+import { analyzeScreen, fetchLiveTelemetry, LiveTelemetry } from "./api/systemTools";
 import backgroundVideo from "./assets/Futuristic_web_interface_backgro…_1080p_202609011655.mp4";
 
 type Message = { author: "user" | "jarvis"; text: string };

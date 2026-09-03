@@ -1,4 +1,4 @@
-import { LiveTelemetry } from "../api/nexusTools";
+import { LiveTelemetry } from "../api/systemTools";
 
 export type ComponentState = "ready" | "error" | "unknown" | "active";
 

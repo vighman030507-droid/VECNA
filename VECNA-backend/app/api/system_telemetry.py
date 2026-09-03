@@ -1,5 +1,5 @@
 """
-Nexus-VII Replicated Endpoints for VECNA.
+System Telemetry, Vision, Memory, and Tool Execution Endpoints for VECNA.
 Provides system telemetry, Hawkins optical scanner (screen vision),
 vector memory vault management, and autonomous system/web tool execution.
 """
@@ -28,7 +28,7 @@ from app.services.system_tools import (
 from app.services.telemetry import get_live_telemetry
 from app.services.vector_memory import memory_vault
 
-router = APIRouter(prefix="/api", tags=["nexus-tools"])
+router = APIRouter(prefix="/api", tags=["system-telemetry"])
 
 
 # ------------------------------------------------------------------------------
